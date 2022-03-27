@@ -14,4 +14,6 @@ if done_processors >= processors_count:
 else:
     print(f"Losses: -> {diff:.2f} BGN")
 
+#Add new comment
+
 
