@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/staticfiles/images/favicon-96x96.png">
+    <title>Photo Gallery</title>
+
+</head>
+<body>
+<nav>
+    <h1>
+        This is Navigation
+    </h1>
+    <ul>
+        <li>
+            <a href="{% url 'index' %}">Home</a>
+        </li>
+        {% if request.user.is_authenticated %}
+        <li>
+            <a href="{% url 'user profile' pk=user.pk %}">Profile</a>
+        </li>
+            <li>
+                <a href="{% url 'logout' %}">Log out</a>
+            </li>
+        {% else %}
+        <li>
+            <a href="{% url 'login' %}">Login</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+<h2>from base</h2>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

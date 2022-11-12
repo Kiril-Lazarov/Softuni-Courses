@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load placeholders %}
+{% block content %}
+
+<h1>Login Page</h1>
+    <form action="{% url 'login' %}" method="post">
+        <div>
+            Username: {{ form.username|placeholder:'Username: ' }}
+        </div>
+        <br>
+        <div>
+            Password: {{ form.password|placeholder:'Password: ' }}
+        </div>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit">Submit</button>
+    </form>
+    <br>
+     <div>
+        <p>Not have an account?<a href="{% url 'register' %}"> Register</a></p>
+    </div>
+{% endblock %}

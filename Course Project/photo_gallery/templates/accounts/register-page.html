@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load placeholders %}
+{% block content %}
+<h1>Register Page</h1>
+    <form action="{% url 'register' %}" method="post">
+        <div>
+            Username: {{ form.username|placeholder:'Username: ' }}
+        </div>
+        <br>
+        <div>
+            Password: {{ form.password1|placeholder:'Password ' }}
+        </div>
+        <div>
+            Password confirmation: {{ form.password2|placeholder:'Repeat Password: ' }}
+        </div>
+
+{#        <input type="hidden" name="next" value="{{ next }}">#}
+        <button type="submit">Submit</button>
+    {% csrf_token %}
+    </form>
+
+{% endblock %}
