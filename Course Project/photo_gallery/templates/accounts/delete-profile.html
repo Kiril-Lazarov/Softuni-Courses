@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Photo Gallery</title>
 </head>
 <body>
-    Delete profile of {{ request.username }}
+    <h1>
+        Are you sure you want to delete your profile?
+    </h1>
+    <form action="{% url 'delete profile' pk=object.pk %}" method="post">
+
+        <button type="submit">Yes</button>
+        {% csrf_token %}
+        <a type="button" href="{% url 'user profile' pk=object.pk %}">Go Back</a>
+    </form>
 </body>
 </html>

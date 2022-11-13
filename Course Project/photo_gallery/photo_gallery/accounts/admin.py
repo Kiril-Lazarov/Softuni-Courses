@@ -8,7 +8,24 @@ UserModel = get_user_model()
 
 @admin.register(UserModel)
 class AppUserAdmin(auth_admin.UserAdmin):
-    pass
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "email")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                    "gender"
+                ),
+            },
+        ),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
+    )
 
 
 '''

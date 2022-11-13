@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('photo_gallery.accounts.urls')),
     path('', include('photo_gallery.common.urls')),
+    path('photos/', include('photo_gallery.photos.urls')),
 ]

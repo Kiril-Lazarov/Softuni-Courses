@@ -4,9 +4,14 @@
     This is the profile details of {{ request.user }}
 </h1>
     <div>
-        Edit <a href=""></a>
+       <a href="{% url 'edit profile' pk=object.pk %}">Edit</a>
     </div>
     <div>
-        Delete <a href=""></a>
+       <a href="{% url 'delete profile' pk=object.pk %}">Delete</a>
+    </div>
+        <div>
+    {% for photo in photos %}
+        <img src="/media_files/photos/female1.png" alt="name">
+    {% endfor %}
     </div>
 {% endblock %}
