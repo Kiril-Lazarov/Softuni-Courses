@@ -1,4 +1,3 @@
-
 from django.urls import reverse_lazy
 from django.views import generic as views
 from django.contrib.auth import views as auth_views, get_user_model
@@ -29,20 +28,18 @@ class UserSignOut(auth_views.LogoutView):
 class UserSignUp(views.CreateView):
     template_name = 'accounts/register-page.html'
     form_class = UserCreateForm
-    success_url = reverse_lazy('user profile')
-
+    success_url = reverse_lazy('index')
 
 
 class UserDetails(views.DetailView):
     template_name = 'accounts/profile.html'
     model = UserModel
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context['is_owner'] = self.request.user == self.object
-        context['photos'] = BasePhotos.objects.all()
+        context['photos'] = BasePhotos.objects.filter(user_id=self.object.pk)
         return context
 
 
@@ -62,3 +59,14 @@ class UserDelete(views.DeleteView):
     model = UserModel
     fields = '__all__'
     success_url = reverse_lazy('index')
+
+class UserGallery(views.DetailView):
+    template_name = 'accounts/profile-gallery.html'
+    model = UserModel
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+
+        context['photos'] = BasePhotos.objects.filter(user_id=self.request.user.pk)
+        return context

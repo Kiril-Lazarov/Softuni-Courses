@@ -32,27 +32,34 @@ class AppUser(auth_models.AbstractUser):
     MIX_LEN_LAST_NAME = 2
 
     username = models.CharField(
-        max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()]
+        max_length=150,
+        unique=True,
+        validators=[django.contrib.auth.validators.UnicodeUsernameValidator()]
     )
 
     first_name = models.CharField(
+        null=True,
+        blank=True,
         max_length=MAX_LEN_FIRST_NAME,
         validators=(validators.MinLengthValidator(MIX_LEN_LAST_NAME),validate_chars),
         verbose_name='First Name'
     )
     last_name = models.CharField(
+        null=True,
+        blank=True,
         max_length=MAX_LEN_FIRST_NAME,
         validators=(validators.MinLengthValidator(MIX_LEN_LAST_NAME),validate_chars),
         verbose_name = 'Last Name',
 
     )
     email = models.EmailField(
-        null=True,
-        blank=True,
+
         unique=True,
     )
 
     gender = models.CharField(
+        null=True,
+        blank=True,
         max_length=Gender.max_len(),
         choices=Gender.choices(),
     )
