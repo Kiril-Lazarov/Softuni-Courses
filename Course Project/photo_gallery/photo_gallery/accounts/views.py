@@ -1,7 +1,10 @@
+from . import forms
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views import generic as views
-from django.contrib.auth import views as auth_views, get_user_model
-from django.shortcuts import render
+from django.contrib.auth import views as auth_views, get_user_model, authenticate, login
+from django.shortcuts import render, redirect
+from django.views.generic import FormView
 
 from photo_gallery.accounts.forms import UserCreateForm
 from photo_gallery.photos.models import BasePhotos
@@ -27,8 +30,19 @@ class UserSignOut(auth_views.LogoutView):
 
 class UserSignUp(views.CreateView):
     template_name = 'accounts/register-page.html'
-    form_class = UserCreateForm
+    form_class = forms.UserCreateForm
     success_url = reverse_lazy('index')
+
+    def form_valid(self, form):
+        to_return = super().form_valid(form)
+        user = authenticate(
+            username=form.cleaned_data["username"],
+            password=form.cleaned_data["password1"],
+        )
+        login(self.request, user)
+        return to_return
+
+
 
 
 class UserDetails(views.DetailView):
@@ -60,13 +74,13 @@ class UserDelete(views.DeleteView):
     fields = '__all__'
     success_url = reverse_lazy('index')
 
+
 class UserGallery(views.DetailView):
     template_name = 'accounts/profile-gallery.html'
     model = UserModel
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
 
         context['photos'] = BasePhotos.objects.filter(user_id=self.request.user.pk)
         return context
