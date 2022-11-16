@@ -1,0 +1,14 @@
+<h1>This is photo delete page</h1>
+
+
+<body>
+    <h1>
+        Are you sure you want to delete this photo?
+    </h1>
+    <form action="{% url 'delete photo' slug=object.slug %}" method="post">
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit">Yes</button>
+        {% csrf_token %}
+        <a type="button" href="{% url 'user profile' pk=user.pk %}">Go Back</a>
+    </form>
+</body>

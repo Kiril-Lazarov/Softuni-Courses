@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>This is Photo details of the profile {{ request.user.username }}</h1>
+<h1>Photos {{ photo }}</h1>
+<section>
+    <ul>
+        <li>
+            {{ photo.title }}
+        </li>
+        <li>
+            {{ photo.published_date }}
+        </li>
+        <li>
+            {{ photo.description }}
+        </li>
+    </ul>
+     <img src="/media/{{ photo.image }}" alt="{{ photo.title }}">
+</section>
+    <nav>
+        <a href="{% url 'edit photo' slug=photo.slug %}">Edit photo</a>
+        <br>
+        <a href="{% url 'delete photo' slug=photo.slug %}">Delete Photo</a>
+    </nav>
+{% endblock %}

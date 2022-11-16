@@ -1,0 +1,8 @@
+<h1>This is photo edit page</h1>
+
+<form method="post" action="{% url 'edit photo' slug=photo.slug %}">
+    <img src="/media/{{ photo.image }}" alt="{{ photo.title }}">
+    {{ form.as_p }}
+    {% csrf_token %}
+    <button type="submit">Edit</button>
+</form>

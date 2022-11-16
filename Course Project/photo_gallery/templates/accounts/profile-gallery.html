@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>This is {{ object.username }} Gallery</h1>
+
+    {% if not photos %}
+        <h1>There is no photos in this profile</h1>
+    {% else %}
+    {% for photo in photos %}
+        <li>
+            <h1>{{ photo.title }}</h1>
+            <br>
+            <img src="/media/{{ photo.image }}" alt="name">
+            <br>
+            <h1> {{ photo.published_date }}</h1>
+            <br>
+            <h1> {{ photo.description }}</h1>
+        </li>
+        <div>
+            <a href="{% url 'details photo' slug=photo.slug %}">Details</a>
+        </div>
+    {% endfor %}
+
+
+    {% endif %}
+{% endblock %}
