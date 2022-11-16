@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <h1>
     This is the profile details of {{ request.user }}
 </h1>
     <div>
-       <a href="{% url 'edit profile' pk=object.pk %}">Edit</a>
+       <a href="{% url 'edit profile' pk=request.user.pk %}">Edit</a>
     </div>
     <div>
        <a href="{% url 'delete profile' pk=object.pk %}">Delete</a>
     </div>
-        <div>
-    {% for photo in photos %}
-        <img src="/media_files/photos/female1.png" alt="name">
-    {% endfor %}
-    </div>
+
+
+
+
 {% endblock %}

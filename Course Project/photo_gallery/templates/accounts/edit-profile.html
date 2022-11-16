@@ -7,8 +7,9 @@
      {{ request.user.first_name }}
      {{ request.user.last_name }}
      {{ request.user.gender }}
-    <form action="{% url 'edit profile' pk=object.pk %}" method="post">
+    <form action="{% url 'edit profile' pk=request.user.pk %}" method="post">
         {{ form.as_p }}
+
     {% csrf_token %}
     <button type="submit">Edit</button>
     </form>
