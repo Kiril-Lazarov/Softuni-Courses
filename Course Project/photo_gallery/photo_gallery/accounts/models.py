@@ -15,7 +15,7 @@ class ChoicesEnumMixin:
 
     @classmethod
     def max_len(cls):
-        return max(len(name) for name, _ in cls.choices())
+        return max(len(name) for name,_  in cls.choices()) + 2
 
 class Gender(ChoicesEnumMixin,Enum):
     male = 'Male'
@@ -58,8 +58,20 @@ class AppUser(auth_models.AbstractUser):
     )
 
     gender = models.CharField(
-        null=True,
-        blank=True,
+        # null=True,
+        # blank=True,
         max_length=Gender.max_len(),
         choices=Gender.choices(),
+        default='Do not show',
+    )
+
+    profile_picture = models.ImageField(
+        null=True,
+        blank=True,
+        upload_to='media_files/profile_pictures',
+    )
+
+    about_me = models.TextField(
+        null=True,
+        blank=True,
     )
