@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif&display=swap');
+
+html {
+    /*font-family: 'PT sans', sans-serif;*/
+    background-color: aliceblue;
+    font-size: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+}
+
+.navigation{
+    /*display: inline-block;*/
+    background-color: papayawhip;
+    padding: 1rem;
+    font-size: 2rem;
+    border-radius: 1.5%;
+
+}
+/*ul {*/
+/*    padding: 0;*/
+/*}*/
+/*nav {*/
+/*    display: inline-block;*/
+
+/*}*/
+li {
+    display: inline-block;
+}
+a {
+    font-style: italic;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.left-side{
+    padding: 10px;
+    margin-left: 10px;
+
+}
+.right-side{
+    margin-left: 1100px;
+}
+.profile-tags {
+    display: inline-block;
+    padding: 10px;
+    margin-left: 500px;
+}
+
+.profile-item-tag {
+    padding: 20px;
+}
+
+body > header > section > nav > ul > li:nth-child(1) > a {
+    padding-left: 10px;
+}
+body > header > section > nav > ul > li:nth-child(2) > a {
+    padding-right: 10px;
+}
+
