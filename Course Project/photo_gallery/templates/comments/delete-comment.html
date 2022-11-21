@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Photo Gallery</title>
+</head>
+<body>
+    <h1>
+        Are you sure you want to delete your comment?
+    </h1>
+       <form action="{% url 'delete photo comment' pk=request.user.pk slug=photo.slug %}" method="post">
+
+        <button type="submit">Yes</button>
+        {% csrf_token %}
+        <a type="button" href="{% url 'details photo' slug=photo.slug %}">Go Back</a>
+    </form>
+</body>
+</html>
