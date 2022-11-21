@@ -4,7 +4,7 @@ from django.urls import reverse
 from photo_gallery.accounts.models import AppUser
 from photo_gallery.accounts.views import UserModel
 from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, UploadAstroPhotoForm, \
-    UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm
+    UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm, DeleteCommentForm
 from photo_gallery.photos.models import BasePhotos, PhotoComments
 
 
@@ -17,7 +17,6 @@ class PhotoCategoryFactory:
 
     @classmethod
     def get_photo_category_form(cls, photo_category, request=None):
-        print(cls.category_form)
         return cls.category_form[photo_category](request)
 
     # @classmethod
@@ -53,7 +52,8 @@ def upload_photo_view(request):
 
 def photo_details_view(request, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
-    comments = PhotoComments.objects.all()
+    comments = PhotoComments.objects.filter(photo_id=photo.id).all()
+    print(comments)
 
     context = {
         'photo': photo,
@@ -110,22 +110,40 @@ def add_photo_comment(request,pk, slug):
         comment.comment = body
         comment.save()
 
-    return redirect('details photo')
+    return redirect('details photo', slug=photo.slug)
+#
+# def edit_photo_comment(request, pk, slug):
+#     photo = BasePhotos.objects.filter(slug=slug).get()
+#     comment = PhotoComments.objects.filter(user_id=pk, photo_id=photo.id).get()
+#     if request.method == "GET":
+#         form = EditCommentForm(instance=comment)
+#     else:
+#
+#         form = EditCommentForm(request.POST, instance=comment)
+#         success_url = reverse('details photo')
+#         if form.is_valid():
+#             form.save()
+#             return redirect(success_url)
+#     context = {
+#         'form': form,
+#         'comment': comment
+#     }
+#
+#     return render(request, 'photos/photo-details.html', context)
 
-def edit_photo_comment(request, pk, slug):
+def delete_photo_comment(request, pk, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
-    comment = PhotoComments.objects.filter(user_id=pk, photo_id=photo.id).get()
     if request.method == "GET":
-        form = EditCommentForm(instance=comment)
+        form = DeleteCommentForm()
     else:
 
-        form = EditCommentForm(request.POST, instance=comment)
-        success_url = reverse('details photo')
+        comment = PhotoComments.objects.filter(user_id=pk, photo_id=photo.pk).first()
+        form = DeleteCommentForm(request.POST, instance=comment)
         if form.is_valid():
             form.save()
-            return redirect(success_url)
+            return redirect('details photo', slug=photo.slug)
     context = {
-        'comment': comment
+        'form': form,
+        'photo': photo,
     }
-
-    return render(request, 'photos/photo-details.html', context)
+    return render(request, 'comments/delete-comment.html', context)
