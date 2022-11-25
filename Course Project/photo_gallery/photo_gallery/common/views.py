@@ -1,4 +1,10 @@
-from django.shortcuts import render
+from django.views import generic as views
+from photo_gallery.photos.models import BasePhotos
 
-def index(request):
-    return render(request, 'index.html')
+
+class ItemsListView(views.ListView):
+    template_name = 'index.html'
+    model = BasePhotos
+    paginate_by = 3
+
+
