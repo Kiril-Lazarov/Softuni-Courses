@@ -1,9 +1,12 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-
+from django.urls import reverse_lazy
+from django.views import generic as views
 from photo_gallery.accounts.views import UserModel
 from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, UploadAstroPhotoForm, \
-    UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm, DeleteCommentForm
-from photo_gallery.photos.models import BasePhotos, PhotoComments
+    UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm, DeleteCommentForm, photo_models
+from photo_gallery.photos.models import BasePhotos, PhotoComments, PortraitPhotographyAssessment, \
+    StreetPhotographyAssessment, AstroPhotographyAssessment
 
 
 class PhotoCategoryFactory:
@@ -16,9 +19,6 @@ class PhotoCategoryFactory:
     @classmethod
     def get_photo_category_form(cls, photo_category, request=None):
         return cls.category_form[photo_category](request)
-
-    # @classmethod
-    # def get_photo_category_model(cls, photo_category):
 
 
 def upload_photo_view(request):
@@ -34,8 +34,7 @@ def upload_photo_view(request):
             photo.user_id = request.user.pk
             photo.save()
             form.save_m2m()
-            photo_assessment_model.user_id = request.user.pk
-            photo_assessment_model.photo_id = photo.pk
+            photo_assessment_model.user_id, photo_assessment_model.photo_id = request.user.pk, photo.pk
             photo_assessment_model.save()
             photo_category_form.save_m2m()
             return redirect('profile gallery', pk=request.user.pk)
@@ -46,15 +45,40 @@ def upload_photo_view(request):
     return render(request, 'photos/upload-photos.html', context)
 
 
-def photo_details_view(request, slug):
-    photo = BasePhotos.objects.filter(slug=slug).get()
-    comments = PhotoComments.objects.filter(photo_id=photo.id).all()
 
-    context = {
-        'photo': photo,
-        'comments': comments,
-    }
-    return render(request, 'photos/photo-details.html', context)
+
+
+class photo_details_view(views.DetailView):
+    template_name = 'photos/photo-details.html'
+    model = BasePhotos
+
+    photo_assessments_models = photo_models
+
+    def get_model_field_names_and_values(self, assessment_model, photo_pk):
+        excluded_fields = ('_state', 'id', 'photo_id', 'user_id', 'rating1')
+        model_fields = {}
+        curr_model = assessment_model.objects.filter(photo_id=photo_pk).get().__dict__
+        for field, value in curr_model.items():
+            if field not in excluded_fields:
+                model_fields[field] = value
+        return model_fields
+
+    def get_photo_slug(self):
+        return list(self.request.get_full_path().split('/'))[-2]
+
+    def get_success_url(self):
+        return reverse_lazy('details photo', kwargs={
+            'slug': self.get_photo_slug(),
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        photo = self.model.objects.filter(slug=self.get_photo_slug()).get()
+        context['photo'] = photo
+        context['comments'] = PhotoComments.objects.filter(photo_id=photo.id).all()
+        context['photo_assessments'] = self. \
+            get_model_field_names_and_values(self.photo_assessments_models[photo.category], photo.pk)
+        return context
 
 
 def photo_edit_view(request, slug):
@@ -108,6 +132,7 @@ def add_photo_comment(request, pk, slug):
     return redirect('details photo', slug=photo.slug)
 
 
+@login_required
 def edit_photo_comment(request, pk):
     comment = PhotoComments.objects.filter(pk=pk).get()
     photo_id = comment.photo_id
