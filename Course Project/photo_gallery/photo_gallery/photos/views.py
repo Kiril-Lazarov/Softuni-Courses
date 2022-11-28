@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic as views
 from photo_gallery.accounts.views import UserModel
+from photo_gallery.photos.assessment_forms import AstroPhotographyAssessmentForm, PortraitPhotographyAssessmentForm, \
+    StreetPhotographyAssessmentForm
+
 from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, UploadAstroPhotoForm, \
     UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm, DeleteCommentForm, photo_models
 from photo_gallery.photos.models import BasePhotos, PhotoComments, PortraitPhotographyAssessment, \
@@ -45,16 +48,16 @@ def upload_photo_view(request):
     return render(request, 'photos/upload-photos.html', context)
 
 
-
-
-
-class photo_details_view(views.DetailView):
+class PhotoDetailsView(views.DetailView):
     template_name = 'photos/photo-details.html'
     model = BasePhotos
-
     photo_assessments_models = photo_models
 
-    def get_model_field_names_and_values(self, assessment_model, photo_pk):
+    def get_photo_slug(self):
+        return list(self.request.get_full_path().split('/'))[-2]
+
+    @staticmethod
+    def get_model_field_names_and_values(assessment_model, photo_pk):
         excluded_fields = ('_state', 'id', 'photo_id', 'user_id', 'rating1')
         model_fields = {}
         curr_model = assessment_model.objects.filter(photo_id=photo_pk).get().__dict__
@@ -62,9 +65,6 @@ class photo_details_view(views.DetailView):
             if field not in excluded_fields:
                 model_fields[field] = value
         return model_fields
-
-    def get_photo_slug(self):
-        return list(self.request.get_full_path().split('/'))[-2]
 
     def get_success_url(self):
         return reverse_lazy('details photo', kwargs={
@@ -76,9 +76,37 @@ class photo_details_view(views.DetailView):
         photo = self.model.objects.filter(slug=self.get_photo_slug()).get()
         context['photo'] = photo
         context['comments'] = PhotoComments.objects.filter(photo_id=photo.id).all()
-        context['photo_assessments'] = self. \
-            get_model_field_names_and_values(self.photo_assessments_models[photo.category], photo.pk)
+        context['photo_assessments'] = \
+            self.get_model_field_names_and_values(self.photo_assessments_models[photo.category], photo.pk)
         return context
+
+
+def get_form_assessment(category):
+    assessment_model_forms = {
+        'astro_photography': AstroPhotographyAssessmentForm,
+        'portrait': PortraitPhotographyAssessmentForm,
+        'street': StreetPhotographyAssessmentForm,
+    }
+
+    return assessment_model_forms[category]
+
+
+def photo_assessment_view(request, slug):
+    photo = BasePhotos.objects.filter(slug=slug).get()
+
+    assessment_form = get_form_assessment(photo.category)
+
+    if request.method == 'GET':
+        form = assessment_form(instance=photo)
+
+    else:
+        form = assessment_form(request.POST, instance=photo)
+
+    context = {
+        'form': form,
+        'photo': photo,
+    }
+    return render(request, 'photos/assessment-photo.html', context)
 
 
 def photo_edit_view(request, slug):
