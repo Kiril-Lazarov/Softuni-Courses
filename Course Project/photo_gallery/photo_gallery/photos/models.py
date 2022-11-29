@@ -52,9 +52,7 @@ class BasePhotos(models.Model):
         max_length=PhotoCategory.max_len(),
         choices=PhotoCategory.choices(),
     )
-    is_rated = models.BooleanField(
-        default=False,
-    )
+
 
 
 class PhotoComments(models.Model):
@@ -95,9 +93,13 @@ class AstroPhotographyAssessment(models.Model):
         BasePhotos,
         on_delete=models.CASCADE,
     )
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         AppUser,
         on_delete=models.CASCADE,
+    )
+    assessing_user = models.IntegerField(
+        null=True,
+        blank=True,
     )
 
     rating1 = models.PositiveIntegerField(
@@ -131,6 +133,7 @@ class AstroPhotographyAssessment(models.Model):
     )
 
 
+
 class PortraitPhotographyAssessment(models.Model):
     MIN_ASSESSMENT = 0
     MAX_ASSESSMENT = 6
@@ -139,9 +142,13 @@ class PortraitPhotographyAssessment(models.Model):
         BasePhotos,
         on_delete=models.CASCADE,
     )
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         AppUser,
         on_delete=models.CASCADE,
+    )
+    assessing_user = models.IntegerField(
+        null=True,
+        blank=True,
     )
 
     rating1 = models.PositiveIntegerField(
@@ -185,9 +192,13 @@ class StreetPhotographyAssessment(models.Model):
         BasePhotos,
         on_delete=models.CASCADE,
     )
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         AppUser,
         on_delete=models.CASCADE,
+    )
+    assessing_user = models.IntegerField(
+        null=True,
+        blank=True,
     )
 
     rating1 = models.PositiveIntegerField(
