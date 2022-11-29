@@ -6,22 +6,9 @@ from photo_gallery.accounts.views import UserModel
 from photo_gallery.photos.forms import AstroPhotographyAssessmentForm, PortraitPhotographyAssessmentForm, \
     StreetPhotographyAssessmentForm
 
-from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, UploadAstroPhotoForm, \
-    UploadStreetPhotoForm, UploadPortraitPhotoForm, AddCommentForm, EditCommentForm, DeleteCommentForm, photo_models
-from photo_gallery.photos.models import BasePhotos, PhotoComments, PortraitPhotographyAssessment, \
-    StreetPhotographyAssessment, AstroPhotographyAssessment
-
-
-class PhotoCategoryFactory:
-    category_form = {
-        'astro_photography': UploadAstroPhotoForm,
-        'portrait': UploadPortraitPhotoForm,
-        'street': UploadStreetPhotoForm,
-    }
-
-    @classmethod
-    def get_photo_category_form(cls, photo_category, request=None):
-        return cls.category_form[photo_category](request)
+from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, AddCommentForm, EditCommentForm, \
+    DeleteCommentForm, photo_models
+from photo_gallery.photos.models import BasePhotos, PhotoComments
 
 
 def upload_photo_view(request):
@@ -29,17 +16,12 @@ def upload_photo_view(request):
         form = UploadPhotoForm()
     else:
         form = UploadPhotoForm(request.POST, request.FILES)
-        photo = form.save(commit=False)
-        photo_category = photo.category
-        photo_category_form = PhotoCategoryFactory.get_photo_category_form(photo_category, request.POST)
-        photo_assessment_model = photo_category_form.save(commit=False)
-        if form.is_valid() and photo_category_form.is_valid():
+
+        if form.is_valid():
+            photo = form.save(commit=False)
             photo.user_id = request.user.pk
             photo.save()
             form.save_m2m()
-            photo_assessment_model.user_id, photo_assessment_model.photo_id = request.user.pk, photo.pk
-            photo_assessment_model.save()
-            photo_category_form.save_m2m()
             return redirect('profile gallery', pk=request.user.pk)
 
     context = {
@@ -57,13 +39,18 @@ class PhotoDetailsView(views.DetailView):
         return list(self.request.get_full_path().split('/'))[-2]
 
     @staticmethod
-    def get_model_field_names_and_values(assessment_model, photo_pk):
-        excluded_fields = ('_state', 'id', 'photo_id', 'user_id', 'rating1')
+    def get_model_field_names_and_values(assessment_model, photo):
+        excluded_fields = ('_state', 'id', 'photo_id', 'owner_id', 'rating1', 'assessing_user')
         model_fields = {}
-        curr_model = assessment_model.objects.filter(photo_id=photo_pk).get().__dict__
-        for field, value in curr_model.items():
-            if field not in excluded_fields:
-                model_fields[field] = value
+        photo_assessments = list(assessment_model.objects.values().all())
+
+        for assessment_pairs in photo_assessments:
+            for field, value in assessment_pairs.items():
+                if field not in excluded_fields:
+                    if field not in model_fields:
+                        model_fields[field] = value
+                    else:
+                        model_fields[field] += value
         return model_fields
 
     def get_success_url(self):
@@ -71,34 +58,23 @@ class PhotoDetailsView(views.DetailView):
             'slug': self.get_photo_slug(),
         })
 
+    def photo_user_rating_status(self, photo):
+        assessing_users_list = list(self.photo_assessments_models[photo.category].
+                                    objects.values_list('assessing_user', flat=True))
+        print(assessing_users_list)
+        return 'Rate' if self.request.user.pk not in assessing_users_list else 'Edit rate'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         photo = self.model.objects.filter(slug=self.get_photo_slug()).get()
         context['photo'] = photo
         context['comments'] = PhotoComments.objects.filter(photo_id=photo.id).all()
         context['photo_assessments'] = \
-            self.get_model_field_names_and_values(self.photo_assessments_models[photo.category], photo.pk)
+            self.get_model_field_names_and_values \
+                (self.photo_assessments_models[photo.category], photo)
+        context['is_rated_from_user'] = self.photo_user_rating_status(photo)
         return context
 
-
-# def photo_details_view(request, slug):
-#     photo_assessments_models = {
-#         'astro_photography': AstroPhotographyAssessment,
-#         'portrait': PortraitPhotographyAssessment,
-#         'street': StreetPhotographyAssessment,
-#     }
-#     photo = BasePhotos.objects.filter(slug=slug).get()
-#     comments = PhotoComments.objects.filter(photo_id=photo.id).all()
-#     photo_assessments = get_model_field_names_and_values(photo_assessments_models[photo.category], photo.pk)
-#     print(photo_assessments)
-#     # for assessment in photo_assessments:
-#     #     print(assessment.name)
-#     context = {
-#         'photo': photo,
-#         'comments': comments,
-#         'photo_assessments': photo_assessments,
-#     }
-#     return render(request, 'photos/photo-details.html', context)
 
 class ModelFormDispatcher:
 
@@ -113,11 +89,7 @@ class ModelFormDispatcher:
 
     @staticmethod
     def get_model_assessment(category):
-        photo_assessments_models = {
-            'astro_photography': AstroPhotographyAssessment,
-            'portrait': PortraitPhotographyAssessment,
-            'street': StreetPhotographyAssessment,
-        }
+        photo_assessments_models = photo_models
         return photo_assessments_models[category]
 
 
@@ -126,15 +98,22 @@ def photo_assessment_view(request, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
     assessment_form = dispatcher.get_form_assessment(photo.category)
     assessment_model = dispatcher.get_model_assessment(photo.category)
-    assessment = assessment_model.objects.filter(photo_id=photo.pk, user_id=request.user.pk).get()
+
+    try:
+        assessment = assessment_model.objects.filter(assessing_user=request.user.pk).get()
+    except BaseException as ex:
+        assessment_model.objects.create(photo_id=photo.pk, owner_id=photo.user_id, assessing_user=request.user.pk)
+        assessment = assessment_model.objects.filter(assessing_user=request.user.pk).get()
+
     if request.method == 'GET':
         form = assessment_form(instance=assessment)
     else:
-
         form = assessment_form(request.POST, instance=assessment)
         if form.is_valid():
-            form.save()
-            redirect('details photo', slug=photo.slug)
+            pre_save_form = form.save(commit=False)
+            pre_save_form.assessing_user = request.user.pk
+            pre_save_form.save()
+            return redirect('details photo', slug=photo.slug)
 
     context = {
         'form': form,
