@@ -7,15 +7,6 @@ from django.db.models.signals import pre_save
 from photo_gallery.accounts.models import AppUser, ChoicesEnumMixin
 from photo_gallery.utils import unique_slug_generator
 
-#
-class Ratings(ChoicesEnumMixin, Enum):
-    one = '1'
-    two = '2'
-    three = '3'
-    four = '4'
-    five = '5'
-    six = '6'
-
 
 class PhotoCategory(ChoicesEnumMixin, Enum):
     astro_photography = 'Astro photography'
@@ -26,6 +17,10 @@ class PhotoCategory(ChoicesEnumMixin, Enum):
 class BasePhotos(models.Model):
     MAX_LEN_TITLE = 250
     MIN_LEN_TITLE = 2
+
+    class Meta:
+        verbose_name_plural = 'Base Photos'
+
     title = models.CharField(
         max_length=MAX_LEN_TITLE,
         validators=(validators.MinLengthValidator(MIN_LEN_TITLE),),
@@ -57,9 +52,15 @@ class BasePhotos(models.Model):
         max_length=PhotoCategory.max_len(),
         choices=PhotoCategory.choices(),
     )
+    is_rated = models.BooleanField(
+        default=False,
+    )
 
 
 class PhotoComments(models.Model):
+    class Meta:
+        verbose_name_plural = 'Photo Comments'
+
     user = models.OneToOneField(
         AppUser,
         on_delete=models.CASCADE,
@@ -88,6 +89,7 @@ pre_save.connect(slug_generator, sender=BasePhotos)
 
 class AstroPhotographyAssessment(models.Model):
     MIN_ASSESSMENT = 0
+    MAX_ASSESSMENT = 6
 
     photo = models.ForeignKey(
         BasePhotos,
@@ -101,44 +103,37 @@ class AstroPhotographyAssessment(models.Model):
     rating1 = models.PositiveIntegerField(
         null=True,
         blank=True,
+        default=MIN_ASSESSMENT,
         validators=(validators.MaxValueValidator(10),),
 
     )
 
-    light = models.IntegerField(
-        null=True,
-        blank=True,
+    light = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    focus = models.IntegerField(
-        null=True,
-        blank=True,
+    focus = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    detail = models.IntegerField(
-        null=True,
-        blank=True,
+    detail = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    contrast = models.IntegerField(
-        null=True,
-        blank=True,
+    contrast = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    color_temperature = models.IntegerField(
-        null=True,
-        blank=True,
+    color_temperature = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
         verbose_name='Color Temperature',
     )
 
+
 class PortraitPhotographyAssessment(models.Model):
     MIN_ASSESSMENT = 0
+    MAX_ASSESSMENT = 6
 
     photo = models.ForeignKey(
         BasePhotos,
@@ -149,55 +144,42 @@ class PortraitPhotographyAssessment(models.Model):
         on_delete=models.CASCADE,
     )
 
-    rating1 = models.IntegerField(
+    rating1 = models.PositiveIntegerField(
         null=True,
         blank=True,
         default=MIN_ASSESSMENT,
     )
-    light = models.IntegerField(
-        null=True,
-        blank=True,
+    light = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    focus = models.IntegerField(
-        null=True,
-        blank=True,
+    focus = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    contrast = models.IntegerField(
-        null=True,
-        blank=True,
+    contrast = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
 
-    emotion = models.IntegerField(
-        null=True,
-        blank=True,
+    emotion = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
 
-    creativity = models.IntegerField(
-        null=True,
-        blank=True,
+    creativity = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    composition = models.IntegerField(
-        null=True,
-        blank=True,
+    composition = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-
-
 
 
 class StreetPhotographyAssessment(models.Model):
     MIN_ASSESSMENT = 0
+    MAX_ASSESSMENT = 6
 
     photo = models.ForeignKey(
         BasePhotos,
@@ -208,42 +190,30 @@ class StreetPhotographyAssessment(models.Model):
         on_delete=models.CASCADE,
     )
 
-    rating1 = models.IntegerField(
+    rating1 = models.PositiveIntegerField(
         null=True,
         blank=True,
         default=MIN_ASSESSMENT,
     )
 
-    light = models.IntegerField(
-        null=True,
-        blank=True,
+    light = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    focus = models.IntegerField(
-        null=True,
-        blank=True,
+    focus = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    contrast = models.IntegerField(
-        null=True,
-        blank=True,
+    contrast = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-    story_line = models.IntegerField(
-        null=True,
-        blank=True,
+    story_line = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
         verbose_name='Story Line'
     )
-    emotion = models.IntegerField(
-        null=True,
-        blank=True,
+    emotion = models.PositiveIntegerField(
         default=MIN_ASSESSMENT,
-        choices=Ratings.choices(),
+        validators=(validators.MaxValueValidator(MAX_ASSESSMENT),),
     )
-
-
