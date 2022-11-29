@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic as views
 from photo_gallery.accounts.views import UserModel
-from photo_gallery.photos.assessment_forms import AstroPhotographyAssessmentForm, PortraitPhotographyAssessmentForm, \
+from photo_gallery.photos.forms import AstroPhotographyAssessmentForm, PortraitPhotographyAssessmentForm, \
     StreetPhotographyAssessmentForm
 
 from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePhotoForm, UploadAstroPhotoForm, \
@@ -81,26 +81,60 @@ class PhotoDetailsView(views.DetailView):
         return context
 
 
-def get_form_assessment(category):
-    assessment_model_forms = {
-        'astro_photography': AstroPhotographyAssessmentForm,
-        'portrait': PortraitPhotographyAssessmentForm,
-        'street': StreetPhotographyAssessmentForm,
-    }
+# def photo_details_view(request, slug):
+#     photo_assessments_models = {
+#         'astro_photography': AstroPhotographyAssessment,
+#         'portrait': PortraitPhotographyAssessment,
+#         'street': StreetPhotographyAssessment,
+#     }
+#     photo = BasePhotos.objects.filter(slug=slug).get()
+#     comments = PhotoComments.objects.filter(photo_id=photo.id).all()
+#     photo_assessments = get_model_field_names_and_values(photo_assessments_models[photo.category], photo.pk)
+#     print(photo_assessments)
+#     # for assessment in photo_assessments:
+#     #     print(assessment.name)
+#     context = {
+#         'photo': photo,
+#         'comments': comments,
+#         'photo_assessments': photo_assessments,
+#     }
+#     return render(request, 'photos/photo-details.html', context)
 
-    return assessment_model_forms[category]
+class ModelFormDispatcher:
+
+    @staticmethod
+    def get_form_assessment(category):
+        assessment_model_forms = {
+            'astro_photography': AstroPhotographyAssessmentForm,
+            'portrait': PortraitPhotographyAssessmentForm,
+            'street': StreetPhotographyAssessmentForm,
+        }
+        return assessment_model_forms[category]
+
+    @staticmethod
+    def get_model_assessment(category):
+        photo_assessments_models = {
+            'astro_photography': AstroPhotographyAssessment,
+            'portrait': PortraitPhotographyAssessment,
+            'street': StreetPhotographyAssessment,
+        }
+        return photo_assessments_models[category]
 
 
 def photo_assessment_view(request, slug):
+    dispatcher = ModelFormDispatcher
     photo = BasePhotos.objects.filter(slug=slug).get()
-
-    assessment_form = get_form_assessment(photo.category)
-
+    assessment_form = dispatcher.get_form_assessment(photo.category)
+    assessment_model = dispatcher.get_model_assessment(photo.category)
+    assessment = assessment_model.objects.filter(photo_id=photo.pk, user_id=request.user.pk).get()
     if request.method == 'GET':
-        form = assessment_form(instance=photo)
-
+        form = assessment_form(instance=assessment)
     else:
-        form = assessment_form(request.POST, instance=photo)
+
+        form = assessment_form(request.POST, instance=assessment)
+        if form.is_valid():
+            form.save()
+            redirect('details photo', slug=photo.slug)
 
     context = {
         'form': form,
