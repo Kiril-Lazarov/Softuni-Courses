@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic as views
@@ -11,6 +12,7 @@ from photo_gallery.photos.forms import UploadPhotoForm, EditPhotoForm, DeletePho
 from photo_gallery.photos.models import BasePhotos, PhotoComments
 
 
+@login_required
 def upload_photo_view(request):
     if request.method == 'GET':
         form = UploadPhotoForm()
@@ -61,7 +63,6 @@ class PhotoDetailsView(views.DetailView):
     def photo_user_rating_status(self, photo):
         assessing_users_list = list(self.photo_assessments_models[photo.category].
                                     objects.values_list('assessing_user', flat=True))
-        print(assessing_users_list)
         return 'Rate' if self.request.user.pk not in assessing_users_list else 'Edit rate'
 
     def get_context_data(self, **kwargs):
@@ -101,7 +102,7 @@ def photo_assessment_view(request, slug):
 
     try:
         assessment = assessment_model.objects.filter(assessing_user=request.user.pk).get()
-    except BaseException as ex:
+    except ObjectDoesNotExist as ex:
         assessment_model.objects.create(photo_id=photo.pk, owner_id=photo.user_id, assessing_user=request.user.pk)
         assessment = assessment_model.objects.filter(assessing_user=request.user.pk).get()
 
@@ -122,6 +123,7 @@ def photo_assessment_view(request, slug):
     return render(request, 'photos/assessment-photo.html', context)
 
 
+@login_required
 def photo_edit_view(request, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
     if request.method == 'GET':
@@ -139,6 +141,7 @@ def photo_edit_view(request, slug):
     return render(request, 'photos/photo-edit.html', context)
 
 
+@login_required
 def delete_photo_view(request, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
     user = UserModel.objects.filter(pk=photo.user_id).get()
@@ -195,6 +198,7 @@ def edit_photo_comment(request, pk):
     return render(request, 'comments/edit-comment.html', context)
 
 
+@login_required
 def delete_photo_comment(request, pk, slug):
     photo = BasePhotos.objects.filter(slug=slug).get()
     if request.method == "GET":
