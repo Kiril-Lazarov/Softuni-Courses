@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+
 from . import forms
 
 from django.urls import reverse_lazy
@@ -5,6 +7,7 @@ from django.views import generic as views
 from django.contrib.auth import views as auth_views, get_user_model, authenticate, login
 
 from photo_gallery.photos.models import BasePhotos
+from ..utils import OwnerRequired
 
 UserModel = get_user_model()
 
@@ -45,10 +48,11 @@ class UserDetailsView(views.DetailView):
         return context
 
 
-class UserEditView(views.UpdateView):
+class UserEditView(OwnerRequired):
     template_name = 'accounts/edit-profile.html'
     model = UserModel
-    fields = ('username', 'profile_picture', 'email', 'first_name', 'last_name', 'gender')
+    fields = ('username', 'profile_picture', 'email', 'first_name', 'last_name', 'gender', 'about_me')
+
 
     def get_success_url(self):
         return reverse_lazy('user profile', kwargs={
@@ -56,7 +60,7 @@ class UserEditView(views.UpdateView):
         })
 
 
-class UserDeleteView(views.DeleteView):
+class UserDeleteView(OwnerRequired):
     template_name = 'accounts/delete-profile.html'
     model = UserModel
     fields = '__all__'
@@ -72,3 +76,4 @@ class UserGalleryView(views.DetailView):
         context['users'] = UserModel.objects.all()
         context['photos'] = reversed(BasePhotos.objects.filter(user_id=self.request.user.pk))
         return context
+
