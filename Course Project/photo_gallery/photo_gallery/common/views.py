@@ -6,5 +6,8 @@ class ItemsListView(views.ListView):
     template_name = 'index.html'
     model = BasePhotos
     paginate_by = 3
+    ordering = ['-published_date']
 
 
+# a = ItemsListView(
+# )
