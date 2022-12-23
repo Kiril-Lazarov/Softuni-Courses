@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
+{% load get_user_by_photo_id %}
+{% load rewrite_field_name %}
 
 {% block content %}
 
-<h1>This is Photo details of the profile {{ request.user.username }}</h1>
+<h1>This is Photo details of the profile {{ request.user.username }} {{ request.user.pk }}</h1>
 <h1>Photos {{ photo }}</h1>
 <section>
     <ul>
+
         <li>
             {{ photo.title }}
         </li>
@@ -14,13 +17,57 @@
         </li>
         <li>
             {{ photo.description }}
+
         </li>
     </ul>
      <img src="/media/{{ photo.image }}" alt="{{ photo.title }}">
+    <br>
+{#    <form action="{% url 'add photo comment' pk=user.pk slug=photo.slug %}" method="post">#}
+{#        {{ form.comment }}#}
+{#        {% csrf_token %}#}
+{#        <button type="submit">post</button>#}
+{#    </form>#}
+        {% for comment in comments %}
+            <li>
+                {{ comment|get_user:comment.user_id }}:  {{ comment.comment }}
+{#                {{ comment.pk }}#}
+                {% if request.user.pk == comment.user_id %}
+                    <a href="{% url 'edit photo comment' pk=comment.pk %}">edit comment</a>
+                <a href="{% url 'delete photo comment' pk=request.user.pk slug=photo.slug  %}">delete comment</a>
+                {% endif %}
+            </li>
+            <br>
+        {% endfor %}
+        {% if request.user.is_authenticated %}
+       <form method="post" action={% url 'add photo comment' pk=request.user.pk slug=photo.slug %}>
+
+          <label for="id_body">Body:</label>
+           <textarea name="body" cols="40" placeholder="Add comment..." maxlength="300"
+                     required="" id="id_body"></textarea>
+           {% csrf_token %}
+           <button type="submit">Post</button>
+       </form>
+        {% endif %}
+
 </section>
-    <nav>
-        <a href="{% url 'edit photo' slug=photo.slug %}">Edit photo</a>
-        <br>
-        <a href="{% url 'delete photo' slug=photo.slug %}">Delete Photo</a>
+     <nav>
+        {% if request.user.is_authenticated %}
+            {% if request.user.pk == photo.user_id  %}
+            <a href="{% url 'edit photo' slug=photo.slug %}">Edit photo</a>
+            <br>
+                <a href="{% url 'delete photo' slug=photo.slug %}">Delete Photo</a>
+            {% endif %}
+            <br>
+            {% if request.user.pk != photo.user_id %}
+                <a href="{% url 'photo assessment' slug=photo.slug %}">{{ is_rated_from_user }}</a>
+            {% endif %}
+        {% endif %}
     </nav>
+    <div>
+        {% for field, value in photo_assessments.items %}
+        <h1>{{ field|rewrite_field_name}}: {{ value }}</h1>
+        {% endfor %}
+    </div>
+
+
 {% endblock %}
