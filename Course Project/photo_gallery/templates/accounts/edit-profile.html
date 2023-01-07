@@ -7,10 +7,11 @@
      {{ request.user.first_name }}
      {{ request.user.last_name }}
      {{ request.user.gender }}
-    <form action="{% url 'edit profile' pk=request.user.pk %}" method="post">
+    <form action="{% url 'edit profile' pk=request.user.pk %}" method="post" enctype="multipart/form-data">
         {{ form.as_p }}
 
     {% csrf_token %}
     <button type="submit">Edit</button>
     </form>
+    <a type="button" href="{% url 'user profile' pk=request.user.pk %}">Back</a>
 {% endblock %}
