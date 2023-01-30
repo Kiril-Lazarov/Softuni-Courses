@@ -25,11 +25,9 @@ class UserPhotosMixin:
 
 class PhotoDetailsTest(UserPhotosMixin, TestCase):
 
-    # Verified that the user cannot rate his own photos
+    # Verifies that the user cannot rate his own photo
     def test_user1_no_permission_to_rate_his_own_photo(self):
         user_1 = self.create_user(username='user1', password='user1pass')
-        user_2 = self.create_user(username='user2', password='user2pass')
-
         user1_photos = self.user_upload_astro_photos(user_1)
         photo_to_check = user1_photos[0]
 
@@ -37,3 +35,17 @@ class PhotoDetailsTest(UserPhotosMixin, TestCase):
         self.client.get(reverse_lazy('details photo', kwargs={'slug': photo_to_check.slug}))
 
         self.assertTrue(user_1.pk == photo_to_check.user_id)
+
+    # Verifies that the user can rate other users photos when current photo is not yet rate by him
+    def test_user1_permission_to_rate_other_users_photos(self):
+        user_1 = self.create_user(username='user1', password='user1pass')
+        user_2 = self.create_user(username='user2', password='user2pass')
+
+        user2_photos = self.user_upload_astro_photos(user_2)
+        photo_to_check = user2_photos[0]
+
+        self.client.login(username=user_1.username, password='user1pass')
+        response = self.client.get(reverse_lazy('details photo', kwargs={'slug': photo_to_check.slug}))
+
+        self.assertTrue(user_1.pk != photo_to_check.user_id)
+        self.assertEqual(response.context_data['is_rated_from_user'], 'Rate')
