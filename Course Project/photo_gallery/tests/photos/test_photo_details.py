@@ -30,10 +30,10 @@ class PhotoDetailsTest(UserPhotosMixin, TestCase):
         user_1 = self.create_user(username='user1', password='user1pass')
         user_2 = self.create_user(username='user2', password='user2pass')
 
-        user2_photos = self.user_upload_astro_photos(user_2)
-        photo_to_check = user2_photos[0]
+        user1_photos = self.user_upload_astro_photos(user_1)
+        photo_to_check = user1_photos[0]
 
         self.client.login(username=user_1.username, password='user1pass')
         self.client.get(reverse_lazy('details photo', kwargs={'slug': photo_to_check.slug}))
 
-        self.assertTrue(user_1.pk != photo_to_check.user_id)
+        self.assertTrue(user_1.pk == photo_to_check.user_id)
