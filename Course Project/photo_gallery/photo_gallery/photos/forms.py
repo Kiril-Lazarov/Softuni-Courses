@@ -71,7 +71,12 @@ class DeletePhotoForm(forms.ModelForm):
         if commit:
             photo_id = self.instance.pk
             photo = BasePhotos.objects.filter(pk=photo_id).get()
-            photo_models[photo.category].objects.filter(photo_id=photo_id).get().delete()
+            photo_assessment = photo_models[photo.category].objects.all()
+          
+            if photo_assessment:
+                for assessment in photo_assessment:
+                    if assessment.photo_id == photo_id:
+                        assessment.delete()
             self.instance.delete()
         return self.instance
     # TODO: Delete the images from media_files
@@ -117,15 +122,18 @@ class DeleteCommentForm(forms.ModelForm):
 class AstroPhotographyAssessmentForm(forms.ModelForm):
     class Meta:
         model = AstroPhotographyAssessment
-        exclude = ('_state', 'id', 'photo_id', 'user_id', 'rating1', 'photo', 'user')
+        exclude = ('_state', 'id', 'photo_id', 'owner', 'rating1', 'photo', 'user', 'assessing_user')
 
 
 class PortraitPhotographyAssessmentForm(forms.ModelForm):
     class Meta:
         model = PortraitPhotographyAssessment
-        exclude = ('_state', 'id', 'photo_id', 'user_id', 'rating1', 'photo', 'user')
+        exclude = ('_state', 'id', 'photo_id', 'owner', 'rating1', 'photo', 'user', 'assessing_user')
+
 
 class StreetPhotographyAssessmentForm(forms.ModelForm):
     class Meta:
         model = StreetPhotographyAssessment
-        exclude = ('_state', 'id', 'photo_id', 'user_id', 'rating1', 'photo', 'user')
+        exclude = ('_state', 'id', 'photo_id', 'owner', 'rating1', 'photo', 'user', 'assessing_user')
+
+
