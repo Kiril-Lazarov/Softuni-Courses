@@ -3,7 +3,6 @@ from django.urls import reverse_lazy
 
 from photo_gallery.photos.models import PhotoComments
 from tests.photos.test_photo_details import UserPhotosMixin
-from django.template.response import TemplateResponse
 
 
 class PhotoCommentsTest(UserPhotosMixin, TestCase):
@@ -39,3 +38,12 @@ class PhotoCommentsTest(UserPhotosMixin, TestCase):
         photo_data = self.client.get(reverse_lazy('details photo', kwargs={'slug': photo_to_check.slug}))
         self.assertFalse('edit comment' in str(photo_data.content))
         self.assertFalse('delete comment' in str(photo_data.content))
+
+    # Verifies that `edit comment` and `delete comment` are available options for logged user
+    # for his own photo
+    def test_logged_user_can_modify_his_own_photos(self):
+        photo_to_check = self.logged_user_photos[0]
+        self.client.login(username=self.logged_user.username, password='user1pass')
+        photo_data = self.client.get(reverse_lazy('details photo', kwargs={'slug': photo_to_check.slug}))
+        self.assertTrue('edit comment' in str(photo_data.content))
+        self.assertTrue('delete comment' in str(photo_data.content))
